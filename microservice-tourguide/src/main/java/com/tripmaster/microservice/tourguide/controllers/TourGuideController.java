@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.concurrent.ExecutionException;
+
 @RestController
 public class TourGuideController
 {
@@ -24,7 +26,12 @@ public class TourGuideController
 
     @RequestMapping("/getUserLocation")
     public String getLocation(@RequestParam String userName) {
-        VisitedLocationBean visitedLocation = tourGuideService.getUserLocation(getUser(userName));
+        VisitedLocationBean visitedLocation = null;
+        try {
+            visitedLocation = tourGuideService.getUserLocation(getUser(userName));
+        } catch (ExecutionException | InterruptedException e) {
+            e.printStackTrace();
+        }
         return JsonStream.serialize(visitedLocation.location);
     }
 
