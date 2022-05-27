@@ -1,10 +1,10 @@
-package com.tripmaster.microservice.gps;
+package com.tripmaster.microservice.pricer;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ApplicationTests {
+class MicroservicePricerApplicationTests {
 
 	@Test
 	void contextLoads() {

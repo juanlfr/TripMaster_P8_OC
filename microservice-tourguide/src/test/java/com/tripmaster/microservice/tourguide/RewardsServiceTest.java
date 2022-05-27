@@ -1,12 +1,15 @@
 package com.tripmaster.microservice.tourguide;
 
+import com.tripmaster.microservice.tourguide.beans.AttractionBean;
 import com.tripmaster.microservice.tourguide.beans.LocationBean;
 import com.tripmaster.microservice.tourguide.beans.VisitedLocationBean;
 import com.tripmaster.microservice.tourguide.beans.user.User;
 import com.tripmaster.microservice.tourguide.beans.user.UserReward;
 import com.tripmaster.microservice.tourguide.proxies.MicroserviceGpsProxy;
 import com.tripmaster.microservice.tourguide.services.RewardsService;
+import com.tripmaster.microservice.tourguide.services.TourGuideService;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -16,6 +19,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -28,7 +33,28 @@ public class RewardsServiceTest {
     RewardsService rewardsService;
     @Autowired
     MicroserviceGpsProxy microserviceGpsProxy;
+    @Autowired
+    TourGuideService tourGuideService;
 
+    @Test
+    public void userGetRewards() throws ExecutionException, InterruptedException {
+
+
+        User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
+        AttractionBean attraction = microserviceGpsProxy.getAttractions().get(0);
+        user.addToVisitedLocations(new VisitedLocationBean(user.getUserId(), attraction, new Date()));
+        tourGuideService.trackUserLocation(user);
+        rewardsService.calculateRewards(user);
+        List<UserReward> userRewards = user.getUserRewards();
+//        tourGuideService.tracker.stopTracking();
+        assertTrue(userRewards.size() == 1);
+    }
+
+    @Test
+    public void isWithinAttractionProximity() {
+        AttractionBean attraction = microserviceGpsProxy.getAttractions().get(0);
+        assertTrue(rewardsService.isWithinAttractionProximity(attraction, attraction));
+    }
     @Test
     public void nearAllAttractions() {
         rewardsService.setProximityBuffer(Integer.MAX_VALUE);

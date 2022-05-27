@@ -6,12 +6,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.util.Locale;
 
 @SpringBootApplication
-public class Application {
+public class MicroserviceGpsApplication {
 
 	public static void main(String[] args) {
 		Locale.setDefault(Locale.US);
 		System.out.println("*************************" + Locale.getDefault() + "************************************");
-		SpringApplication.run(Application.class, args);
+		SpringApplication.run(MicroserviceGpsApplication.class, args);
 	}
 
 }

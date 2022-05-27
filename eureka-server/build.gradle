@@ -4,15 +4,9 @@ plugins {
 	id 'java'
 }
 
-group = 'com.tripmaster'
+group = 'com.tripmaster.'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '1.8'
-
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
-}
 
 repositories {
 	mavenCentral()
@@ -21,14 +15,12 @@ repositories {
 }
 
 ext {
-	set('springCloudVersion', "2021.0.3-SNAPSHOT")
+	set('springCloudVersion', "2021.0.2")
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	implementation files('libs/RewardCentral.jar')
 }
 
 dependencyManagement {
