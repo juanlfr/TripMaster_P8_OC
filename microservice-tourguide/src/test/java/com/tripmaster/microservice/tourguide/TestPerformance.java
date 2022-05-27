@@ -12,11 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.util.StopWatch;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -36,16 +36,19 @@ public class TestPerformance {
 
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
+        AtomicInteger number = new AtomicInteger(0);
         allUsers.stream().parallel().forEach(user -> {
             try {
                 tourGuideService.trackUserLocation(user);
+                number.getAndIncrement();
+                System.out.println("user # " + number);
             } catch (ExecutionException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
         });
 
         stopWatch.stop();
-        System.out.println("highVolumeGetRewards: Time Elapsed: " + stopWatch.getTotalTimeSeconds() + " seconds.");
+        System.out.println("highVolumeGetRewards: Time Elapsed: " + stopWatch.getTotalTimeSeconds() / 60 + " minutes.");
         assertTrue(TimeUnit.MINUTES.toSeconds(15) >= stopWatch.getTotalTimeSeconds());
 
     }

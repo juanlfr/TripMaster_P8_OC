@@ -74,7 +74,7 @@ public class TourGuideService {
 
         ExecutorService executorService = Executors.newFixedThreadPool(50);
         CompletableFuture<VisitedLocationBean> getUserLocationFuture = CompletableFuture.supplyAsync(() -> microserviceGpsProxy.getUserLocation(user.getUserId()));
-        getUserLocationFuture.thenAccept(user::addToVisitedLocations).thenRunAsync(() ->  rewardsService.calculateRewards(user),executorService);
+        getUserLocationFuture.thenAccept(user::addToVisitedLocations).thenRunAsync(() ->  rewardsService.calculateRewards(user), executorService);
         return getUserLocationFuture.get();
     }
     public List<AttractionDTO> getNearByAttractions(VisitedLocationBean visitedLocation, User user) {

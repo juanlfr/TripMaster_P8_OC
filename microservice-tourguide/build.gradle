@@ -15,20 +15,21 @@ repositories {
 }
 
 ext {
-	set('springCloudVersion', "2021.0.3-SNAPSHOT")
+	set('springCloudVersion', "2021.0.2")
 }
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.cloud:spring-cloud-config-server'
-	implementation 'org.springframework.cloud:spring-cloud-starter-config'
-//	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'
+	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+//	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-ribbon:2.2.10.RELEASE'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	implementation group: 'com.jsoniter', name: 'jsoniter', version: '0.9.23'
 	implementation group: 'org.javamoney', name: 'moneta', version: '1.3'
 }
+
+apply plugin: "io.spring.dependency-management"
 
 dependencyManagement {
 	imports {

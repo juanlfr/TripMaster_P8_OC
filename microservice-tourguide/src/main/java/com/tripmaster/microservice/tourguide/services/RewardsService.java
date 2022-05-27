@@ -38,18 +38,20 @@ public class RewardsService {
         List<VisitedLocationBean> userLocations = user.getVisitedLocations();
         List<AttractionBean> attractions = microserviceGpsProxy.getAttractions();
         //TODO Envoyer un future?
-        System.out.println("calculateRewards before for loop in Rewards service" + "by" + Thread.currentThread().getName());
         for (VisitedLocationBean visitedLocation : userLocations) {
-            for (AttractionBean attraction : attractions) {
-                //To check by attraction name if the user's reward is already added, if not, it is added
-                //TODO à tester sans if ci dessous
-                if (user.getUserRewards().stream().noneMatch(reward -> reward.attraction.attractionName.equals(attraction.attractionName))) {
-                    if (nearAttraction(visitedLocation, attraction)) {
-                        user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
-                        System.out.println("addUserReward Rewards service" + "by" + Thread.currentThread().getName());
-                    }
-                }
-            }
+            attractions.stream().parallel().filter(attractionBean ->
+                user.getUserRewards().stream().noneMatch(reward -> reward.attraction.attractionName.equals(attractionBean.attractionName))
+            ).filter(attractionBean -> nearAttraction(visitedLocation, attractionBean)).forEach(attractionBean -> user.addUserReward(new UserReward(visitedLocation, attractionBean, getRewardPoints(attractionBean, user))));
+//            for (AttractionBean attraction : attractions) {
+//                //To check by attraction name if the user's reward is already added, if not, it is added
+//                //TODO à tester sans if ci dessous
+//                if (user.getUserRewards().stream().noneMatch(reward -> reward.attraction.attractionName.equals(attraction.attractionName))) {
+//                    if (nearAttraction(visitedLocation, attraction)) {
+//                        user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
+//                        System.out.println("addUserReward Rewards service" + "by" + Thread.currentThread().getName());
+//                    }
+//                }
+//            }
         }
 
     }
