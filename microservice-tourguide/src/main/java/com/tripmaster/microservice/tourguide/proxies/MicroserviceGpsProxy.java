@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.UUID;
 
 @FeignClient(name = "microservice-gps")
-//@RibbonClient(name = "microservice-gps", configuration = RibbonConfiguration.class)
 public interface MicroserviceGpsProxy {
     @GetMapping("/getLocation")
     VisitedLocationBean getUserLocation(@RequestParam("userId") UUID userId);

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -26,7 +27,7 @@ import java.util.stream.IntStream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-
+@ActiveProfiles("test")
 @SpringBootTest
 public class RewardsServiceTest {
     @Autowired
@@ -44,10 +45,9 @@ public class RewardsServiceTest {
         AttractionBean attraction = microserviceGpsProxy.getAttractions().get(0);
         user.addToVisitedLocations(new VisitedLocationBean(user.getUserId(), attraction, new Date()));
         tourGuideService.trackUserLocation(user);
-        rewardsService.calculateRewards(user);
+        rewardsService.calculateRewards(user).get();
         List<UserReward> userRewards = user.getUserRewards();
-//        tourGuideService.tracker.stopTracking();
-        assertTrue(userRewards.size() == 1);
+        assertEquals(1, userRewards.size());
     }
 
     @Test
@@ -56,17 +56,15 @@ public class RewardsServiceTest {
         assertTrue(rewardsService.isWithinAttractionProximity(attraction, attraction));
     }
     @Test
-    public void nearAllAttractions() {
+    public void nearAllAttractions() throws ExecutionException, InterruptedException {
         rewardsService.setProximityBuffer(Integer.MAX_VALUE);
         User user = new User(UUID.randomUUID(), "jon", "000", "jon@tourGuide.com");
         generateUserLocationHistory(user);
-        rewardsService.calculateRewards(user);
+        rewardsService.calculateRewards(user).get();
         assertEquals(microserviceGpsProxy.getAttractions().size(), user.getUserRewards().size());
     }
     private void generateUserLocationHistory(User user) {
-        IntStream.range(0, 3).forEach(i -> {
-            user.addToVisitedLocations(new VisitedLocationBean(user.getUserId(), new LocationBean(generateRandomLatitude(), generateRandomLongitude()), getRandomTime()));
-        });
+        IntStream.range(0, 3).forEach(i -> user.addToVisitedLocations(new VisitedLocationBean(user.getUserId(), new LocationBean(generateRandomLatitude(), generateRandomLongitude()), getRandomTime())));
     }
 
     private double generateRandomLongitude() {

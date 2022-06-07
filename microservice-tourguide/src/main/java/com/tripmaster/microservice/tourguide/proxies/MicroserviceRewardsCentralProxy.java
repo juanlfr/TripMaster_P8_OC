@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.UUID;
 
-@FeignClient(name = "microservice-rewards", url = "localhost:9002")
+@FeignClient(name = "microservice-rewards")
 public interface MicroserviceRewardsCentralProxy {
     @GetMapping("/getAttractionRewardPoints")
     int getAttractionRewardPoints(@RequestParam("attractionId") UUID attractionId,@RequestParam("userId") UUID userId);

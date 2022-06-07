@@ -7,19 +7,21 @@ import com.tripmaster.microservice.tourguide.helpers.InternalTestHelper;
 import com.tripmaster.microservice.tourguide.proxies.MicroserviceGpsProxy;
 import com.tripmaster.microservice.tourguide.services.RewardsService;
 import com.tripmaster.microservice.tourguide.services.TourGuideService;
+import org.apache.catalina.Executor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.StopWatch;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
+@ActiveProfiles("test")
 @SpringBootTest
 public class TestPerformance {
     @Autowired
@@ -28,9 +30,10 @@ public class TestPerformance {
     RewardsService rewardsService;
     @Autowired
     MicroserviceGpsProxy microserviceGpsProxy;
+
     @Test
     public void highVolumeTrackLocation() throws ExecutionException, InterruptedException {
-        InternalTestHelper.setInternalUserNumber(10000);
+        InternalTestHelper.setInternalUserNumber(10);
         InternalTestHelper.initializeInternalUsers();
         List<User> allUsers = tourGuideService.getAllUsers();
 
@@ -48,28 +51,39 @@ public class TestPerformance {
         });
 
         stopWatch.stop();
-        System.out.println("highVolumeGetRewards: Time Elapsed: " + stopWatch.getTotalTimeSeconds() / 60 + " minutes.");
+        System.out.println("highVolumeTrackLocation: Time Elapsed: " + stopWatch.getTotalTimeSeconds() / 60 + " minutes.");
         assertTrue(TimeUnit.MINUTES.toSeconds(15) >= stopWatch.getTotalTimeSeconds());
 
     }
-    @Test
-    public void highVolumeGetRewards() {
-        InternalTestHelper.setInternalUserNumber(100);
 
+
+
+    @Test
+    public void highVolumeGetRewards() throws ExecutionException, InterruptedException {
+
+        InternalTestHelper.setInternalUserNumber(1000);
+        InternalTestHelper.initializeInternalUsersWithoutHistory();
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         AttractionBean attraction = microserviceGpsProxy.getAttractions().get(0);
         List<User> allUsers = tourGuideService.getAllUsers();
         allUsers.forEach(u -> {
             u.addToVisitedLocations(new VisitedLocationBean(u.getUserId(), attraction, new Date()));
-            System.out.println("**************** u.addToVisitedLocations IN TEST THREAD *********** ");
         });
-        allUsers.forEach(rewardsService::calculateRewards);
+        AtomicInteger number = new AtomicInteger(0);
+        List<CompletableFuture<Void>> completableFutureList = new ArrayList<>();
+        allUsers.stream().parallel().forEach(user -> {
+            completableFutureList.add(rewardsService.calculateRewards(user));
+            System.out.println("user #: " + number.getAndIncrement());
+        });
+        CompletableFuture<Void> completableFuture = CompletableFuture.allOf(completableFutureList.toArray(new CompletableFuture[0]));
+        completableFuture.join();
 
-        for(User user : allUsers) {
+        stopWatch.stop();
+        System.out.println("highVolumeGetRewards: Time Elapsed: " + stopWatch.getTotalTimeSeconds() / 60 + " minutes.");
+        for (User user : allUsers) {
             assertTrue(user.getUserRewards().size() > 0);
         }
-        stopWatch.stop();
         assertTrue(TimeUnit.MINUTES.toSeconds(20) >= stopWatch.getTotalTimeSeconds());
     }
 }

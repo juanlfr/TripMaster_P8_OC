@@ -11,6 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 public class RewardsService {
@@ -33,34 +37,37 @@ public class RewardsService {
         proximityBuffer = defaultProximityBuffer;
     }
 
-    public void calculateRewards(User user) {
+    public CompletableFuture<Void> calculateRewards(User user) {
 
         List<VisitedLocationBean> userLocations = user.getVisitedLocations();
         List<AttractionBean> attractions = microserviceGpsProxy.getAttractions();
-        //TODO Envoyer un future?
-        for (VisitedLocationBean visitedLocation : userLocations) {
-            attractions.stream().parallel().filter(attractionBean ->
-                user.getUserRewards().stream().noneMatch(reward -> reward.attraction.attractionName.equals(attractionBean.attractionName))
-            ).filter(attractionBean -> nearAttraction(visitedLocation, attractionBean)).forEach(attractionBean -> user.addUserReward(new UserReward(visitedLocation, attractionBean, getRewardPoints(attractionBean, user))));
-//            for (AttractionBean attraction : attractions) {
-//                //To check by attraction name if the user's reward is already added, if not, it is added
-//                //TODO à tester sans if ci dessous
-//                if (user.getUserRewards().stream().noneMatch(reward -> reward.attraction.attractionName.equals(attraction.attractionName))) {
-//                    if (nearAttraction(visitedLocation, attraction)) {
-//                        user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
-//                        System.out.println("addUserReward Rewards service" + "by" + Thread.currentThread().getName());
-//                    }
-//                }
-//            }
-        }
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        return CompletableFuture.runAsync(() -> {
 
+            for (VisitedLocationBean visitedLocation : userLocations) {
+//            attractions.stream().parallel().filter(attractionBean ->
+//                user.getUserRewards().stream().noneMatch(reward -> reward.attraction.attractionName.equals(attractionBean.attractionName))
+//            ).filter(attractionBean -> nearAttraction(visitedLocation, attractionBean)).
+//                    forEach(attractionBean -> user.addUserReward(new UserReward(visitedLocation, attractionBean, getRewardPoints(attractionBean, user))));
+                for (AttractionBean attraction : attractions) {
+                    //To check by attraction name if the user's reward is already added, if not, it is added
+                    if (user.getUserRewards().stream().noneMatch(reward -> reward.attraction.attractionName.equals(attraction.attractionName))) {
+                        if (nearAttraction(visitedLocation, attraction)) {
+                            user.addUserReward(new UserReward(visitedLocation, attraction, getRewardPoints(attraction, user)));
+                            System.out.println("addUserReward Rewards service" + "by" + Thread.currentThread().getName());
+                        }
+                    }
+                }
+            }
+        }, executorService);
     }
+
     public boolean isWithinAttractionProximity(AttractionBean attraction, LocationBean location) {
-        return getDistance(attraction, location) > attractionProximityRange ? false : true;
+        return !(getDistance(attraction, location) > attractionProximityRange);
     }
 
     public boolean nearAttraction(VisitedLocationBean visitedLocation, AttractionBean attraction) {
-        return getDistance(attraction, visitedLocation.location) > proximityBuffer ? false : true;
+        return !(getDistance(attraction, visitedLocation.location) > proximityBuffer);
     }
 
     public int getRewardPoints(AttractionBean attraction, User user) {

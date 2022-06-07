@@ -1,5 +1,6 @@
 package com.tripmaster.microservice.tourguide.beans;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class Provider {
@@ -23,5 +24,18 @@ public class Provider {
 
     public UUID getTripId() {
         return tripId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Provider provider = (Provider) o;
+        return Double.compare(provider.getPrice(), getPrice()) == 0 && Objects.equals(getName(), provider.getName()) && Objects.equals(getTripId(), provider.getTripId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName(), getPrice(), getTripId());
     }
 }

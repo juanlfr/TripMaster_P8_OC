@@ -11,7 +11,7 @@ import java.util.stream.IntStream;
 
 public class InternalTestHelper {
     // Set this default up to 100,000 for testing
-    private static int internalUserNumber = 1;
+    private static int internalUserNumber = 5;
 
     public static void setInternalUserNumber(int internalUserNumber) {
         InternalTestHelper.internalUserNumber = internalUserNumber;
@@ -24,7 +24,7 @@ public class InternalTestHelper {
     public static final Map<String, User> internalUserMap = new HashMap<>();
 
     public static void initializeInternalUsers() {
-        IntStream.range(0, InternalTestHelper.getInternalUserNumber()).forEach(i -> {
+        IntStream.range(0, internalUserNumber).forEach(i -> {
             String userName = "internalUser" + i;
             String phone = "000";
             String email = userName + "@tourGuide.com";
@@ -57,5 +57,16 @@ public class InternalTestHelper {
     private static Date getRandomTime() {
         LocalDateTime localDateTime = LocalDateTime.now().minusDays(new Random().nextInt(30));
         return Date.from(localDateTime.toInstant(ZoneOffset.UTC));
+    }
+    public static void initializeInternalUsersWithoutHistory() {
+        IntStream.range(0, InternalTestHelper.getInternalUserNumber()).forEach(i -> {
+            String userName = "internalUser" + i;
+            String phone = "000";
+            String email = userName + "@tourGuide.com";
+            User user = new User(UUID.randomUUID(), userName, phone, email);
+
+            internalUserMap.put(userName, user);
+        });
+        System.out.println("Created " + InternalTestHelper.getInternalUserNumber() + " internal test users.");
     }
 }

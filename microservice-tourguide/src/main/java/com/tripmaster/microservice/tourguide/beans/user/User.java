@@ -72,7 +72,6 @@ public class User {
 	
 	public void addUserReward(UserReward userReward) {
 
-		System.out.println("users rewards" + userRewards.toString());
 		if(userRewards.stream().noneMatch(reward -> reward.attraction.attractionName.equals(userReward.attraction.attractionName))) {
 			userRewards.add(userReward);
 			System.out.println("adding user reward" + userReward.toString());
